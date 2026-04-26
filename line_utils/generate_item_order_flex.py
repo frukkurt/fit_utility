@@ -1,4 +1,27 @@
 
+from pydantic import BaseModel
+from typing import List
+
+class OrderItem(BaseModel):
+    name: str
+    quantity: int
+    price: float
+
+
+class OrderFlexRequest(BaseModel):
+    items: List[OrderItem]
+    total_items: int
+    total_price: float
+    transport_price: float
+    sum_total: float
+    order_id: str
+    address: str
+    store_name: str = "Well daily"
+    store_address: str = "Marigold Lanna | Chiang Mai"
+    button_url: str
+    button_label: str = "Transfer slip"
+
+
 def generate_order_flex(
     items: list[dict],
     total_items: int | str,
