@@ -9,16 +9,25 @@ class OrderItem(BaseModel):
 
 
 class OrderFlexRequest(BaseModel):
-    items: List[OrderItem]
-    total_items: int
-    total_price: float
-    transport_price: float
-    sum_total: float
-    order_id: str
-    address: str
+    items: List[OrderItem] = [{
+      "name": "ไก่",
+      "quantity": 5,
+      "price": 100
+    },{
+      "name": "หมู",
+      "quantity": 5,
+      "price": 100
+    },
+    ]
+    total_items: int = 10
+    total_price: float =1000.000
+    transport_price: float = 50.00
+    sum_total: float = 1050.00
+    order_id: str  = "#260425&ght2&121110"
+    address: str = "1234 home"
     store_name: str = "Well daily"
     store_address: str = "Marigold Lanna | Chiang Mai"
-    button_url: str
+    button_url: str = "https://www.google.com/"
     button_label: str = "Transfer slip"
 
 
