@@ -1,12 +1,16 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import json
+from typing import Optional
+from pydantic import BaseModel
+
 from fit_utils.build_user_nutrition_profile import (
     UserProfileInput,
     UserProfileResponse,
     build_user_nutrition_profile,
 )
 from line_utils.generate_item_order_flex import (generate_order_flex,OrderFlexRequest)
+from map_utils.shipping import calculate_map_shipping
 
 app = FastAPI(
     title="FIT UTILITY API",
@@ -18,7 +22,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -74,3 +78,22 @@ def create_order_flex(payload: OrderFlexRequest):
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+class ShippingRequest(BaseModel):
+    origin_lat: float
+    origin_lon: float
+
+    dest_lat: Optional[float] = None
+    dest_lon: Optional[float] = None
+    dest_address: Optional[str] = None
+
+
+@app.post("/calculate-shipping")
+def calculate_shipping(payload: ShippingRequest):
+    return calculate_map_shipping(
+        origin_lat=payload.origin_lat,
+        origin_lon=payload.origin_lon,
+        dest_lat=payload.dest_lat,
+        dest_lon=payload.dest_lon,
+        dest_address=payload.dest_address
+    )
