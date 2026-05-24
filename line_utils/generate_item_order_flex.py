@@ -1,6 +1,6 @@
-
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+
 
 class OrderItem(BaseModel):
     name: str
@@ -9,25 +9,19 @@ class OrderItem(BaseModel):
 
 
 class OrderFlexRequest(BaseModel):
-    items: List[OrderItem] = [{
-      "name": "ไก่",
-      "quantity": 5,
-      "price": 100
-    },{
-      "name": "หมู",
-      "quantity": 5,
-      "price": 100
-    },
-    ]
-    total_items: int = 10
-    total_price: float =1000.000
-    transport_price: float = 50.00
-    sum_total: float = 1050.00
-    order_id: str  = "#260425&ght2&121110"
-    address: str = "1234 home"
+    items: List[OrderItem]
+    total_items: int
+    total_price: float
+    transport_price: float
+    vat: float = 7
+    sum_total: float
+    order_id: str
+    address: str
+    lat: Optional[float] = None
+    lon: Optional[float] = None
     store_name: str = "Well daily"
     store_address: str = "Marigold Lanna | Chiang Mai"
-    button_url: str = "https://www.google.com/"
+    button_url: str
     button_label: str = "Transfer slip"
 
 
@@ -36,9 +30,12 @@ def generate_order_flex(
     total_items: int | str,
     total_price: float | str,
     transport_price: float | str,
+    vat: float | str,
     sum_total: float | str,
     order_id: str,
     address: str = "-",
+    lat: float | str | None = None,
+    lon: float | str | None = None,
     store_name: str = "Well daily",
     store_address: str = "Marigold Lanna | Chiang Mai",
     button_url: str = "http://linecorp.com/",
@@ -50,6 +47,12 @@ def generate_order_flex(
             return value if "฿" in value else f"{value}฿"
         value = float(value)
         return f"{int(value)}฿" if value.is_integer() else f"{value:.2f}฿"
+
+    def percent_fmt(value) -> str:
+        if isinstance(value, str):
+            return value if "%" in value else f"{value}%"
+        value = float(value)
+        return f"{int(value)}%" if value.is_integer() else f"{value:.2f}%"
 
     item_contents = []
 
@@ -84,6 +87,27 @@ def generate_order_flex(
                 },
             ],
             "margin": "sm",
+        })
+
+    address_contents = [
+        {"type": "text", "text": "Address", "size": "sm", "weight": "bold"},
+        {"type": "text", "text": address, "size": "xs", "margin": "xs", "wrap": True},
+    ]
+
+    if lat is not None:
+        address_contents.append({
+            "type": "text",
+            "text": f"Lat: {lat}",
+            "size": "xxs",
+            "color": "#aaaaaa",
+        })
+
+    if lon is not None:
+        address_contents.append({
+            "type": "text",
+            "text": f"Lon: {lon}",
+            "size": "xxs",
+            "color": "#aaaaaa",
         })
 
     return {
@@ -142,7 +166,15 @@ def generate_order_flex(
                             "type": "box",
                             "layout": "horizontal",
                             "contents": [
-                                {"type": "text", "text": "Sum Total", "size": "sm", "color": "#555555"},
+                                {"type": "text", "text": "VAT", "size": "sm", "color": "#555555"},
+                                {"type": "text", "text": percent_fmt(vat), "size": "sm", "color": "#111111", "align": "end"},
+                            ],
+                        },
+                        {
+                            "type": "box",
+                            "layout": "horizontal",
+                            "contents": [
+                                {"type": "text", "text": "Sum Total", "size": "sm", "color": "#555555", "weight": "bold"},
                                 {"type": "text", "text": money_fmt(sum_total), "size": "sm", "color": "#111111", "align": "end"},
                             ],
                         },
@@ -152,10 +184,7 @@ def generate_order_flex(
                 {
                     "type": "box",
                     "layout": "vertical",
-                    "contents": [
-                        {"type": "text", "text": "Address", "size": "sm", "weight": "bold"},
-                        {"type": "text", "text": address, "size": "xs", "margin": "xs", "wrap": True},
-                    ],
+                    "contents": address_contents,
                 },
                 {"type": "separator", "margin": "xxl"},
                 {

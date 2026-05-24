@@ -56,6 +56,7 @@ def calculate_profile(payload: UserProfileInput) -> UserProfileResponse:
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.post("/generate-order-flex")
 def create_order_flex(payload: OrderFlexRequest):
     try:
@@ -64,6 +65,7 @@ def create_order_flex(payload: OrderFlexRequest):
             total_items=payload.total_items,
             total_price=payload.total_price,
             transport_price=payload.transport_price,
+            vat=payload.vat, #
             sum_total=payload.sum_total,
             order_id=payload.order_id,
             address=payload.address,
@@ -71,10 +73,12 @@ def create_order_flex(payload: OrderFlexRequest):
             store_address=payload.store_address,
             button_url=payload.button_url,
             button_label=payload.button_label,
+            lat=payload.lat, #
+            lon=payload.lon, #
         )
-        # return_json = json.dumps(flex_json, ensure_ascii=False)
+
         return flex_json         
-        # return return_json   
+ 
 
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
